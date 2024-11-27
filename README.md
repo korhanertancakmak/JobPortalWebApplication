@@ -39,7 +39,7 @@ Then we get the results back from the database, and then we send it over to our 
 and it's finally returned back to the browser.
 
 <div align="center">
-    <img src="https://github.com/korhanertancakmak/SPRING-BOOT/blob/master/09-spring-boot-spring-jpa-hibernate-advanced-mappings/images/image01.png" alt="image01">
+    <img src="https://github.com/korhanertancakmak/JobPortalWebApplication/blob/master/images/image01.png" alt="image01">
 </div>
 
 </div>
