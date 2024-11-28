@@ -7,5 +7,6 @@ import java.util.Optional;
 
 public interface UsersRepository extends JpaRepository<Users, Integer> {
 
+    // Created to fix the duplicate registration bug that finds the users by a specific email
     Optional<Users> findByEmail(String email);
 }

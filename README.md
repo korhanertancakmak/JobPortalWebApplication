@@ -2,8 +2,9 @@
 <div style="text-align:justify">
 
 This project is the source code of job portal web application written by using **Spring Boot**, **Spring MVC**, 
-**Thymeleaf**, **Spring Security**, **JPA**, **Hibernate**, **HTML**, **JavaScript** and **MySQL**.
-In this application, a recruiter is able to
+**Thymeleaf**, **Spring Security**, **JPA**, **Hibernate**, **HTML**, **JavaScript** and **MySQL**. 
+We have 2 types of users in this application, and they are named as "Job Seeker" and "Recruiter".
+A recruiter is able to
 
 - post a new job
 - view the jobs

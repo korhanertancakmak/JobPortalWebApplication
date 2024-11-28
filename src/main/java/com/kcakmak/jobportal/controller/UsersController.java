@@ -24,6 +24,7 @@ import java.util.Optional;
 @Controller
 public class UsersController {
 
+    // Constructor Injection for Users and UsersType Services
     private final UsersTypeService usersTypeService;
     private final UsersService usersService;
 
@@ -33,26 +34,37 @@ public class UsersController {
         this.usersService = usersService;
     }
 
+    // User Registration form mapped as "/register"
     @GetMapping("/register")
     public String register(Model model) {
+        // retrieve all UsersTypes from DB
         List<UsersType> usersTypes = usersTypeService.getAll();
+        // Add list of all UsersTypes into the model
         model.addAttribute("getAllTypes", usersTypes);
+        // Create a new Users instance to use the form data
         model.addAttribute("user", new Users());
         return "register";
     }
 
+    // Process data coming from User Registration form mapped as "/register/new"
+    // @Valid applies the validation rules defined in the Users entity
     @PostMapping("/register/new")
     public String userRegistration(@Valid Users users, Model model) {
-        //System.out.println("User: "+ users);
 
+        // Created to fix the duplicate registration bug.
+        // Here we find the users by a specific email
         Optional<Users> optionalUsers = usersService.getUserByEmail(users.getEmail());
         if (optionalUsers.isPresent()) {
+            // We add the error message to the model
             model.addAttribute("error", "Email already registered, try to login or register with other email.");
+            // Sending back to the @GetMapping("/register") to create a new user
             List<UsersType> usersTypes = usersTypeService.getAll();
             model.addAttribute("getAllTypes", usersTypes);
             model.addAttribute("user", new Users());
             return "register";
         }
+
+        // adding the user into the DB
         usersService.addNew(users);
         return "redirect:/dashboard";
     }

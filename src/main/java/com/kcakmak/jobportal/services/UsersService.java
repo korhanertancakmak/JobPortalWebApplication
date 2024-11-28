@@ -6,6 +6,7 @@ import com.kcakmak.jobportal.entity.Users;
 import com.kcakmak.jobportal.repository.JobSeekerProfileRepository;
 import com.kcakmak.jobportal.repository.RecruiterProfileRepository;
 import com.kcakmak.jobportal.repository.UsersRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -20,11 +21,13 @@ import java.util.Optional;
 @Service
 public class UsersService {
 
+    // Constructor Injections
     private final UsersRepository usersRepository;
     private final JobSeekerProfileRepository jobSeekerProfileRepository;
     private final RecruiterProfileRepository recruiterProfileRepository;
     private final PasswordEncoder passwordEncoder;
 
+    @Autowired
     public UsersService(UsersRepository usersRepository, JobSeekerProfileRepository jobSeekerProfileRepository,
                         RecruiterProfileRepository recruiterProfileRepository, PasswordEncoder passwordEncoder) {
         this.usersRepository = usersRepository;
@@ -33,10 +36,15 @@ public class UsersService {
         this.passwordEncoder = passwordEncoder;
     }
 
+    // Register a new user into DB
     public Users addNew(Users users) {
+        // Initial values for the user
         users.setActive(true);
         users.setRegistrationDate(new Date(System.currentTimeMillis()));
+        //
         users.setPassword(passwordEncoder.encode(users.getPassword()));
+
+        // Save the user in "Users" Table of DB
         Users savedUser = usersRepository.save(users);
 
         int userTypeId = users.getUsersTypeId().getUserTypeId();
@@ -48,6 +56,7 @@ public class UsersService {
         return savedUser;
     }
 
+    // Created to fix the duplicate registration bug that finds the users by a specific email
     public Optional<Users> getUserByEmail(String email) {
         return usersRepository.findByEmail(email);
     }

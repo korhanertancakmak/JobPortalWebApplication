@@ -9,6 +9,7 @@ import java.util.List;
 @Service
 public class UsersTypeService {
 
+    // Spring Data JPA injection for UsersTypeRepository
     private final UsersTypeRepository usersTypeRepository;
 
     public UsersTypeService(UsersTypeRepository usersTypeRepository) {

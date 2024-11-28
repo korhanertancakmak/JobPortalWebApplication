@@ -26,7 +26,7 @@
                             <form th:action="@{/register/new}" th:object="${user}" method="post" >
                                 <div class="box-body bozero mx2p">
 
-                                    <!-- Error message display -->
+                                    <!-- Error message display for duplicate registration with the same email -->
                                     <div class="row">
                                         <div class="col-md-12">
                                             <div class="form-group">
@@ -36,7 +36,7 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <!-- End-error message display -->
+                                    <!-- End-error message display for duplicate registration with the same email -->
 
                                     <div class="row">
                                         <div class="col-md-12">
