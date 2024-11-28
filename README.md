@@ -53,6 +53,7 @@ In this application, the following technologies are used:
 * **Thymeleaf:** For rendering HTML views.
 * **JavaScript:** For supporting the search list.
 * **CSS:** For designing the user interface.
+* **WebJars** : bootstrap, jquery, font-awesome and webjars-locator
 * **MySQL:** Database to store employee and user data.
 * **Maven:** For dependency management and build automation.
 </div>
