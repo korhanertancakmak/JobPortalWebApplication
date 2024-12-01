@@ -151,6 +151,7 @@ public class JobSeekerProfile {
         this.skills = skills;
     }
 
+    // Convenience method to get the job seeker/candidate profile image file's path
     @Transient
     public String getPhotosImagePath() {
         if (profilePhoto == null || userAccountId == null) {

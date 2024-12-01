@@ -32,6 +32,10 @@ public class RecruiterProfile {
     public RecruiterProfile() {
     }
 
+    public RecruiterProfile(Users users) {
+        this.userId = users;
+    }
+
     public RecruiterProfile(String firstName, int userAccountId, Users userId, String lastName,
                             String city, String state, String country, String company, String profilePhoto) {
         this.firstName = firstName;
@@ -43,10 +47,6 @@ public class RecruiterProfile {
         this.country = country;
         this.company = company;
         this.profilePhoto = profilePhoto;
-    }
-
-    public RecruiterProfile(Users users) {
-        this.userId = users;
     }
 
     public int getUserAccountId() {
@@ -121,6 +121,8 @@ public class RecruiterProfile {
         this.company = company;
     }
 
+    // This is convenience method for the "dashboard.html" form to support the "user?.photosImagePath" thymeleaf source
+    // We use "@Transient" annotation because this field should not be persisted in the DB
     @Transient
     public String getPhotosImagePath() {
         if (profilePhoto == null) return null;

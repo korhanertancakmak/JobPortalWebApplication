@@ -18,9 +18,13 @@ public class CustomUserDetails implements UserDetails {
         this.user = user;
     }
 
+    // This method returns the roles for this user
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
+
+        // retrieve the user type information
         UsersType usersType = user.getUsersTypeId();
+        // the list of Simple Granted Authorities(basically a list of roles for the given user)
         List<SimpleGrantedAuthority> authorities = new ArrayList<>();
         authorities.add(new SimpleGrantedAuthority(usersType.getUserTypeName()));
         return authorities;
@@ -43,7 +47,7 @@ public class CustomUserDetails implements UserDetails {
 
     @Override
     public boolean isAccountNonLocked() {
-        return UserDetails.super.isAccountNonLocked();
+        return true;
     }
 
     @Override

@@ -1,7 +1,6 @@
 package com.kcakmak.jobportal.config;
 
 import com.kcakmak.jobportal.services.CustomUserDetailsService;
-import jakarta.servlet.http.HttpSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Bean;
@@ -17,11 +16,7 @@ import org.springframework.security.web.SecurityFilterChain;
 @Configuration
 public class WebSecurityConfig {
 
-    private static final Logger log = LoggerFactory.getLogger(WebSecurityConfig.class);
-    private final CustomUserDetailsService customUserDetailsService;
-
-    private final CustomAuthenticationSuccessHandler customAuthenticationSuccessHandler;
-
+    // These are the URLs that Spring Security will not provide protection support
     private final String[] publicUrl = {"/",
             "/global-search/**",
             "/register",
@@ -34,6 +29,15 @@ public class WebSecurityConfig {
             "/js/**",
             "/*.css", "/*.js", "/*js.map", "/fonts**", "/favicon.ico", "/resources/**", "/error"};
 
+    // Injection of custom UserDetailsService
+    private final CustomUserDetailsService customUserDetailsService;
+
+    // Injection of custom AuthenticationSuccessHandler
+    private final CustomAuthenticationSuccessHandler customAuthenticationSuccessHandler;
+
+    private static final Logger log = LoggerFactory.getLogger(WebSecurityConfig.class);
+
+
     public WebSecurityConfig(CustomUserDetailsService customUserDetailsService,
                              CustomAuthenticationSuccessHandler customAuthenticationSuccessHandler) {
         this.customUserDetailsService = customUserDetailsService;
@@ -44,12 +48,12 @@ public class WebSecurityConfig {
     protected SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
         http.authenticationProvider(authenticationProvider());
-
         http.authorizeHttpRequests(auth ->{
-            auth.requestMatchers(publicUrl).permitAll();
-            auth.anyRequest().authenticated();
+            auth.requestMatchers(publicUrl).permitAll();    // No need for user to login
+            auth.anyRequest().authenticated();              // Any other requests that comes in has to be authenticated
         });
 
+        // Setup login page, custom AuthenticationSuccessHandler and logout page
         http.formLogin(form -> form.loginPage("/login").permitAll()
                 .successHandler(customAuthenticationSuccessHandler))
                 .logout(logout->{
@@ -61,15 +65,22 @@ public class WebSecurityConfig {
         return http.build();
     }
 
+    // This is our custom authentication provider method
+    // that tells Spring Security how to find our users and how to authenticate passwords for the users
     @Bean
     public AuthenticationProvider authenticationProvider() {
 
         DaoAuthenticationProvider authenticationProvider = new DaoAuthenticationProvider();
         authenticationProvider.setPasswordEncoder(passwordEncoder());
+        // This sets up the user detail service
+        // that tells Spring security how to retrieve the users from DB
+        // custom user details service is injected
         authenticationProvider.setUserDetailsService(customUserDetailsService);
         return authenticationProvider;
     }
 
+    // This is our custom password encoder
+    // that tells Spring Security how to authenticate passwords (plain text or encryption)
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();

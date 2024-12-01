@@ -11,6 +11,7 @@ import java.util.List;
 @Repository
 public interface JobSeekerSaveRepository extends JpaRepository<JobSeekerSave, Integer> {
 
+    // abstract methods for candidate profiles that are saved the jobs
     List<JobSeekerSave> findByUserId(JobSeekerProfile userAccountId);
     List<JobSeekerSave> findByJob(JobPostActivity job);
 }

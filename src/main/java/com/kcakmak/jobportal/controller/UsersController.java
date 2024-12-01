@@ -69,20 +69,23 @@ public class UsersController {
         return "redirect:/dashboard";
     }
 
+    // login form mapped as "/login"
     @GetMapping("/login")
     public String login() {
         return "login";
     }
 
+    // logout form mapped as "/logout"
     @GetMapping("/logout")
     public String logout(HttpServletRequest request, HttpServletResponse response) {
 
+        // Retrieve the authentication of the current user
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
+        // Handle logout process by Spring Security if authentication's NOT null
         if (authentication != null) {
             new SecurityContextLogoutHandler().logout(request, response, authentication);
         }
-
         return "redirect:/";
     }
 }

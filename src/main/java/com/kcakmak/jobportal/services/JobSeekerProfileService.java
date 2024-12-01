@@ -16,6 +16,7 @@ import java.util.Optional;
 @Service
 public class JobSeekerProfileService {
 
+    // Injection of Users and job seeker profile repositories
     private final JobSeekerProfileRepository jobSeekerProfileRepository;
     private final UsersRepository usersRepository;
 
@@ -25,14 +26,17 @@ public class JobSeekerProfileService {
         this.usersRepository = usersRepository;
     }
 
+    // This method returns job seeker profile by id
     public Optional<JobSeekerProfile> getOne(Integer id) {
         return jobSeekerProfileRepository.findById(id);
     }
 
-    public JobSeekerProfile addNew(JobSeekerProfile jobSeekerProfile) {
-        return jobSeekerProfileRepository.save(jobSeekerProfile);
+    // This method saves the job seeker profile passed to here
+    public void addNew(JobSeekerProfile jobSeekerProfile) {
+        jobSeekerProfileRepository.save(jobSeekerProfile);
     }
 
+    // This method returns the candidate profile if the authenticated user is a candidate profile, otherwise it's null
     public JobSeekerProfile getCurrentSeekerProfile() {
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();

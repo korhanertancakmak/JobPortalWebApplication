@@ -11,6 +11,7 @@ import java.util.List;
 @Repository
 public interface JobSeekerApplyRepository extends JpaRepository<JobSeekerApply, Integer> {
 
+    // abstract methods for candidate profiles that are applied to jobs
     List<JobSeekerApply> findByUserId(JobSeekerProfile userId);
     List<JobSeekerApply> findByJob(JobPostActivity job);
 }

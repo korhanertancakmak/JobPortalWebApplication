@@ -34,9 +34,14 @@ public class RecruiterProfileController {
         this.recruiterProfileService = recruiterProfileService;
     }
 
+    // To get the recruiter profile form
     @GetMapping("/")
     public String recruiterProfile(Model model) {
 
+        // Retrieve current authentication of the user
+        // Check whether the authentication object represents an authenticated user who is not anonymous
+        // Retrieve the authenticated username, the User object by a username(email) and recruiter profile by id
+        // If the recruiter profile is NOT empty, add it to the model
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (!(authentication instanceof AnonymousAuthenticationToken)) {
             String currentUsername = authentication.getName();
@@ -53,10 +58,15 @@ public class RecruiterProfileController {
         return "recruiter_profile";
     }
 
+    // To post the recruiter profile form data to the DB
     @PostMapping("/addNew")
     public String addNew(RecruiterProfile recruiterProfile,
                          @RequestParam("image")MultipartFile multipartFile, Model model) {
 
+        // Retrieve current authentication of the user
+        // Check whether the authentication object represents an authenticated user who is not anonymous
+        // Retrieve the authenticated username and the "Users" object by a username(email)
+        // Associate recruiter profile with existing user account
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (!(authentication instanceof AnonymousAuthenticationToken)) {
             String currentUsername = authentication.getName();
@@ -66,15 +76,23 @@ public class RecruiterProfileController {
             recruiterProfile.setUserId(users);
             recruiterProfile.setUserAccountId(users.getUserId());
         }
+
+        // Add the recruiter profile to the model with the name of "profile"
         model.addAttribute("profile", recruiterProfile);
+
+        // Associate the recruiter profile image file name if the uploaded file name is NOT empty string
         String filename = "";
         if (!multipartFile.getOriginalFilename().equals("")) {
             filename = StringUtils.cleanPath(Objects.requireNonNull(multipartFile.getOriginalFilename()));
             recruiterProfile.setProfilePhoto(filename);
         }
-        RecruiterProfile savedUser = recruiterProfileService.addNew(recruiterProfile);
-        String uploadDir = "photos/recruiter/" + savedUser.getUserAccountId();
 
+        // Save the new recruiter profile data in DB
+        RecruiterProfile savedUser = recruiterProfileService.addNew(recruiterProfile);
+
+        // Create a directory named as savedUser's id and save the profile image in it
+        String uploadDir = "photos/recruiter/" + savedUser.getUserAccountId();
+        // Use saveFile custom method of the FileUploadUtil class that we created to save a file
         try {
             FileUploadUtil.saveFile(uploadDir, filename, multipartFile);
         } catch (Exception ex) {

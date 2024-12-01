@@ -41,12 +41,15 @@ public class UsersService {
         // Initial values for the user
         users.setActive(true);
         users.setRegistrationDate(new Date(System.currentTimeMillis()));
-        //
+        // Encrypt the user's password
         users.setPassword(passwordEncoder.encode(users.getPassword()));
 
         // Save the user in "Users" Table of DB
         Users savedUser = usersRepository.save(users);
 
+        // If user's type id is 1 then it's a "recruiter"
+        // If user's type id is NOT 1 then it's a "job seeker"
+        // We use Spring Data JPA repository classes to save the recruiter/job seeker profile
         int userTypeId = users.getUsersTypeId().getUserTypeId();
         if (userTypeId == 1) {
             recruiterProfileRepository.save(new RecruiterProfile(savedUser));
@@ -61,15 +64,21 @@ public class UsersService {
         return usersRepository.findByEmail(email);
     }
 
+    // Retrieve the current user profile as a Recruiter or Job Seeker
     public Object getCurrentUserProfile() {
 
+        // Retrieve current authentication of the user
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-
+        // Check whether the authentication object represents an authenticated user who is not anonymous
         if (!(authentication instanceof AnonymousAuthenticationToken)) {
-            String username = authentication.getName();
-            Users users = usersRepository.findByEmail(username).orElseThrow(() -> new UsernameNotFoundException("Could not found user"));
-            int userId = users.getUserId();
 
+            // Retrieve the authenticated username
+            String username = authentication.getName();
+            // Retrieve the User object by a username(email)
+            Users users = usersRepository.findByEmail(username).orElseThrow(() -> new UsernameNotFoundException("Could not found user"));
+            // Retrieve the user's Id
+            int userId = users.getUserId();
+            // Check whether the user is a Recruiter or a Job Seeker
             if (authentication.getAuthorities().contains(new SimpleGrantedAuthority("Recruiter"))) {
                 RecruiterProfile recruiterProfile = recruiterProfileRepository.findById(userId).orElse(new RecruiterProfile());
                 return recruiterProfile;
@@ -81,6 +90,7 @@ public class UsersService {
         return null;
     }
 
+    // This method returns the authenticated user
     public Users getCurrentUser() {
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -92,6 +102,7 @@ public class UsersService {
         return null;
     }
 
+    // This method returns the user by authenticated username
     public Users findByEmail(String currentUsername) {
         return usersRepository.findByEmail(currentUsername).orElseThrow(() -> new UsernameNotFoundException("User not found"));
     }

@@ -32,8 +32,8 @@ import java.util.Optional;
 @RequestMapping("/job-seeker-profile")
 public class JobSeekerProfileController {
 
+    // Injection of Users repository and job seeker profile service
     private JobSeekerProfileService jobSeekerProfileService;
-
     private UsersRepository usersRepository;
 
     @Autowired
@@ -43,50 +43,73 @@ public class JobSeekerProfileController {
         this.usersRepository = usersRepository;
     }
 
+    // Get the job-seeker/candidate profile form
     @GetMapping("/")
     public String JobSeekerProfile(Model model) {
 
+        // Create a new job-seeker profile instance
         JobSeekerProfile jobSeekerProfile = new JobSeekerProfile();
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        // Create a list of Skills for the job-seeker profile
         List<Skills> skills = new ArrayList<>();
+
+        // Check whether the authentication object represents an authenticated user who is not anonymous
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (!(authentication instanceof AnonymousAuthenticationToken)) {
+
+            // Retrieve the User object by a username(email) and job-seeker profile by User object's id
             Users user = usersRepository.findByEmail(authentication.getName()).orElseThrow(() -> new RuntimeException("User not found"));
             Optional<JobSeekerProfile> seekerProfile = jobSeekerProfileService.getOne(user.getUserId());
+
+            // If the job-seeker profile is present, set it to our new job-seeker profile instance
             if (seekerProfile.isPresent()) {
                 jobSeekerProfile = seekerProfile.get();
+                // Check the job-seeker profile's skills is empty?
                 if (jobSeekerProfile.getSkills().isEmpty()) {
+                    // Set its skills with a new instance of Skills entity
                     skills.add(new Skills());
                     jobSeekerProfile.setSkills(skills);
                 }
             }
+
+            // add skills and profile to the model
             model.addAttribute("skills", skills);
             model.addAttribute("profile", jobSeekerProfile);
         }
         return "job-seeker-profile";
     }
 
+    // Post the new job-seeker profile to the DB
     @PostMapping("/addNew")
     public String addNew(JobSeekerProfile jobSeekerProfile,
                          @RequestParam("image")MultipartFile image,
                          @RequestParam("pdf") MultipartFile pdf,
                          Model model) {
 
+        // Retrieve the current authentication
+        // Check whether the authentication object represents an authenticated user who is not anonymous
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-
         if(!(authentication instanceof AnonymousAuthenticationToken)) {
+            // Retrieve the User object by the name field of authentication(email)
             Users user = usersRepository.findByEmail(authentication.getName()).orElseThrow(() -> new RuntimeException("User not found"));
+            // Set our job seeker profile parameter passed to this method to the User object
+            // Set our job seeker profile's user account Id to the Id of the User object
             jobSeekerProfile.setUserId(user);
             jobSeekerProfile.setUserAccountId(user.getUserId());
         }
 
+        // Create a list of Skills for the job-seeker profile
         List<Skills> skillsList = new ArrayList<>();
+        // add skills and profile to the model
         model.addAttribute("profile", jobSeekerProfile);
         model.addAttribute("skills", skillsList);
 
+        // Associate the skills with the appropriate job seeker profile accordingly
         for (Skills skill : jobSeekerProfile.getSkills()) {
             skill.setJobSeekerProfile(jobSeekerProfile);
         }
 
+        // Associate the filenames for the profile image and resume
         String imageName = "";
         String resumeName = "";
         if (!Objects.equals(image.getOriginalFilename(), "")) {
@@ -98,7 +121,10 @@ public class JobSeekerProfileController {
             jobSeekerProfile.setResume(resumeName);
         }
 
-        JobSeekerProfile seekerProfile = jobSeekerProfileService.addNew(jobSeekerProfile);
+        // Save the job seeker profile into the DB
+        jobSeekerProfileService.addNew(jobSeekerProfile);
+
+        // Save the image and resume files into the server
         try {
             String uploadDir = "photos/candidate/" + jobSeekerProfile.getUserAccountId();
             if (!Objects.equals(image.getOriginalFilename(), "")) {
@@ -114,6 +140,7 @@ public class JobSeekerProfileController {
         return "redirect:/dashboard/";
     }
 
+
     @GetMapping("/{id}")
     public String candidateProfile(@PathVariable("id") int id, Model model) {
 
@@ -121,6 +148,7 @@ public class JobSeekerProfileController {
         model.addAttribute("profile", seekerProfile.get());
         return "job-seeker-profile";
     }
+
 
     @GetMapping("/downloadResume")
     public ResponseEntity<?> downloadResume(@RequestParam(value = "fileName") String fileName,

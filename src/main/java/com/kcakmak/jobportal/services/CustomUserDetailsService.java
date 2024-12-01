@@ -19,9 +19,13 @@ public class CustomUserDetailsService implements UserDetailsService {
         this.usersRepository = usersRepository;
     }
 
+    // This method comes from the implemented UserDetailsService interface
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        // We designed that emails are the usernames in the app
+        // loading the user using findByEmail method in the users repository
         Users user = usersRepository.findByEmail(username).orElseThrow(() -> new UsernameNotFoundException("Could not found user"));
+        // We return an instance of CustomUserDetails class (that's in the util package) with the user as a parameter
         return new CustomUserDetails(user);
     }
 }

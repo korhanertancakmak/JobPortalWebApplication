@@ -19,14 +19,17 @@ public class JobSeekerSaveService {
         this.jobSeekerSaveRepository = jobSeekerSaveRepository;
     }
 
+    // This method returns a list of saved jobs by the candidate's id
     public List<JobSeekerSave> getCandidatesJob(JobSeekerProfile userAccountId) {
         return jobSeekerSaveRepository.findByUserId(userAccountId);
     }
 
+    // This method returns a list of candidates that are saved the job by the job
     public List<JobSeekerSave> getJobCandidates(JobPostActivity job) {
         return jobSeekerSaveRepository.findByJob(job);
     }
 
+    // This method saves the jobSeekerSave data to the DB
     public void addNew(JobSeekerSave jobSeekerSave) {
         jobSeekerSaveRepository.save(jobSeekerSave);
     }

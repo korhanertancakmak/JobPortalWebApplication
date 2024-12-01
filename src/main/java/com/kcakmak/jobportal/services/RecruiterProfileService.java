@@ -25,14 +25,17 @@ public class RecruiterProfileService {
         this.usersRepository = usersRepository;
     }
 
+    // Retrieve a recruiter profile by id
     public Optional<RecruiterProfile> getOne(Integer id) {
         return recruiterRepository.findById(id);
     }
 
+    // Save the new recruiter profile to the DB
     public RecruiterProfile addNew(RecruiterProfile recruiterProfile) {
         return recruiterRepository.save(recruiterProfile);
     }
 
+    // This method returns the recruiter profile if the authenticated user is a recruiter profile, otherwise it's null
     public RecruiterProfile getCurrentRecruiterProfile() {
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();

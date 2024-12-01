@@ -55,6 +55,8 @@ public class JobPostActivityController {
                              @RequestParam(value = "days7", required = false) boolean days7,
                              @RequestParam(value = "days30", required = false) boolean days30) {
 
+        // Sidebar search flag menu
+        // Add initial values of flag values to the model
         model.addAttribute("partTime", Objects.equals(partTime, "Part-Time"));
         model.addAttribute("fullTime", Objects.equals(fullTime, "Full-Time"));
         model.addAttribute("freelance", Objects.equals(freelance, "Freelance"));
@@ -67,15 +69,17 @@ public class JobPostActivityController {
         model.addAttribute("days7", days7);
         model.addAttribute("days30", days30);
 
+        // body search flag menu
         model.addAttribute("job", job);
         model.addAttribute("location", location);
 
+        // If the passed-values of the flags are "null", set them accordingly
         LocalDate searchDate = null;
-        List<JobPostActivity> jobPost = null;
         boolean dateSearchFlag = true;
         boolean remote = true;
         boolean type = true;
 
+        // Set search date flag values to default values
         if (days30) {
             searchDate = LocalDate.now().minusDays(30);
         } else if (days7) {
@@ -86,6 +90,7 @@ public class JobPostActivityController {
             dateSearchFlag = false;
         }
 
+        // Set employment type flag values to default values
         if (partTime == null && fullTime == null && freelance == null) {
             partTime = "Part-Time";
             fullTime = "Full-Time";
@@ -93,6 +98,7 @@ public class JobPostActivityController {
             remote = false;
         }
 
+        // Set work type flag values to default values
         if (officeOnly == null && remoteOnly == null && partialRemote == null) {
             officeOnly = "Office-Only";
             remoteOnly = "Remote-Only";
@@ -100,62 +106,112 @@ public class JobPostActivityController {
             type = false;
         }
 
+        // Create an empty list for the search
+        List<JobPostActivity> jobPost = null;
+
+        // If all of the search date, employment type and work type flags at sidebar search menu,
+        // and the job and location flags at body search menu are "false":
         if (!dateSearchFlag && !remote && !type && !StringUtils.hasText(job) && !StringUtils.hasText(location)) {
+            // Since we don't have any of the flag items selected, we simply get all jobs
             jobPost = jobPostActivityService.getAll();
         } else {
+            // If any of the flags are selected, then we'll search using these appropriate flags
             jobPost = jobPostActivityService.search(job, location,
                     Arrays.asList(partTime, fullTime, freelance),
                     Arrays.asList(remoteOnly, officeOnly, partialRemote), searchDate);
         }
 
+        // Retrieve current user profile object and its authentication
         Object currentUserProfile = usersService.getCurrentUserProfile();
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-
+        // Check whether the authentication object represents an authenticated user who is not anonymous
         if (!(authentication instanceof AnonymousAuthenticationToken)) {
+
+            // retrieve the name of the authenticated user and add it to the model
             String currentUsername = authentication.getName();
             model.addAttribute("username", currentUsername);
+
+            // Posted job-list with respect to the user profile
+            // If the logged-in user is authenticated as "Recruiter":
             if (authentication.getAuthorities().contains(new SimpleGrantedAuthority("Recruiter"))) {
+                // Use the method returns a list of DTOs (using interface-based projection) with recruiter's id parameter
                 List<RecruiterJobsDto> recruiterJobs = jobPostActivityService.getRecruiterJobs(((RecruiterProfile) currentUserProfile).getUserAccountId());
                 model.addAttribute("jobPost", recruiterJobs);
+                // If the logged-in user is authenticated as "Job Seeker":
             } else {
+                // Create and initialize candidate applied and saved job list by the current user(candidate) profile
                 List<JobSeekerApply> jobSeekerApplyList = jobSeekerApplyService.getCandidatesJobs((JobSeekerProfile) currentUserProfile);
                 List<JobSeekerSave> jobSeekerSaveList = jobSeekerSaveService.getCandidatesJob((JobSeekerProfile) currentUserProfile);
 
-                boolean exist;
-                boolean saved;
-
+                // Loop trough all job posts to check whether the job is a job that candidate applied for or saved in the past
+                boolean exist; // flag to show the job is active or not
+                boolean saved; // flag to show the job is saved or not
                 for (JobPostActivity jobActivity : jobPost) {
                     exist = false;
                     saved = false;
                     for (JobSeekerApply jobSeekerApply : jobSeekerApplyList) {
+                        // If the candidate profile has this jobActivity in his applied list, set its active field to "true"
                         if (Objects.equals(jobActivity.getJobPostId(), jobSeekerApply.getJob().getJobPostId())) {
                             jobActivity.setIsActive(true);
-                            exist = true;
+                            exist = true; // flag is up
                             break;
                         }
                     }
-
+                    // If the candidate profile has this jobActivity in his saved list, set its active field to "true"
                     for (JobSeekerSave jobSeekerSave : jobSeekerSaveList) {
                         if (Objects.equals(jobActivity.getJobPostId(), jobSeekerSave.getJob().getJobPostId())) {
                             jobActivity.setIsSaved(true);
-                            saved = true;
+                            saved = true; // flag is up
                             break;
                         }
                     }
 
+                    // Check whether the flags for activity and saved are up
                     if (!exist) {
                         jobActivity.setIsActive(false);
                     }
                     if (!saved) {
                         jobActivity.setIsSaved(false);
                     }
-
                     model.addAttribute("jobPost", jobPost);
                 }
             }
         }
+
+        // add the user to the model
         model.addAttribute("user", currentUserProfile);
         return "dashboard";
+    }
+
+    // Get the add-job form
+    @GetMapping("/dashboard/add")
+    public String addJobs(Model model) {
+        model.addAttribute("jobPostActivity", new JobPostActivity());
+        model.addAttribute("user", usersService.getCurrentUserProfile());
+        return "add-jobs";
+    }
+
+    // Post the new job data to DB
+    @PostMapping("/dashboard/addNew")
+    public String addNew(JobPostActivity jobPostActivity, Model model) {
+
+        Users user = usersService.getCurrentUser();
+        if (user != null) {
+            jobPostActivity.setPostedById(user);
+        }
+        jobPostActivity.setPostedDate(new Date());
+        model.addAttribute("jobPostActivity", jobPostActivity);
+        JobPostActivity saved = jobPostActivityService.addNew(jobPostActivity);
+        return "redirect:/dashboard/";
+    }
+
+    // Get the add-job form with the posted-job data
+    @GetMapping("dashboard/edit/{id}")
+    public String editJob(@PathVariable("id") int id, Model model) {
+        JobPostActivity jobPostActivity = jobPostActivityService.getOne(id);
+        model.addAttribute("jobPostActivity", jobPostActivity);
+        model.addAttribute("user", usersService.getCurrentUserProfile());
+        return "add-jobs";
     }
 
     @GetMapping("/global-search/")
@@ -227,33 +283,5 @@ public class JobPostActivityController {
 
         model.addAttribute("jobPost", jobPost);
         return "global-search";
-    }
-
-    @GetMapping("/dashboard/add")
-    public String addJobs(Model model) {
-        model.addAttribute("jobPostActivity", new JobPostActivity());
-        model.addAttribute("user", usersService.getCurrentUserProfile());
-        return "add-jobs";
-    }
-
-    @PostMapping("/dashboard/addNew")
-    public String addNew(JobPostActivity jobPostActivity, Model model) {
-
-        Users user = usersService.getCurrentUser();
-        if (user != null) {
-            jobPostActivity.setPostedById(user);
-        }
-        jobPostActivity.setPostedDate(new Date());
-        model.addAttribute("jobPostActivity", jobPostActivity);
-        JobPostActivity saved = jobPostActivityService.addNew(jobPostActivity);
-        return "redirect:/dashboard/";
-    }
-
-    @PostMapping("dashboard/edit/{id}")
-    public String editJob(@PathVariable("id") int id, Model model) {
-        JobPostActivity jobPostActivity = jobPostActivityService.getOne(id);
-        model.addAttribute("jobPostActivity", jobPostActivity);
-        model.addAttribute("user", usersService.getCurrentUserProfile());
-        return "add-jobs";
     }
 }
